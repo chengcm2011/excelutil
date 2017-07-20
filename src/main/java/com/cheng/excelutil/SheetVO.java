@@ -7,10 +7,8 @@ import java.util.Map;
  * 页签数据
  */
 public class SheetVO {
-    private String sheetName ;
-    private String[] title;
-    private String[] code;
-    private Map<String, Map<String, String>> translaters ;
+    private String sheetName ="sheet01" ;
+    private List<CellInfoVO> cellInfoVOs ;
     private List<Map<String,Object>> data ;
     public SheetVO(){
 
@@ -18,6 +16,7 @@ public class SheetVO {
     public SheetVO(String sheetName){
         this.sheetName = sheetName ;
     }
+
     public String getSheetName() {
         return sheetName;
     }
@@ -26,28 +25,12 @@ public class SheetVO {
         this.sheetName = sheetName;
     }
 
-    public String[] getTitle() {
-        return title;
+    public List<CellInfoVO> getCellInfoVOs() {
+        return cellInfoVOs;
     }
 
-    public void setTitle(String[] title) {
-        this.title = title;
-    }
-
-    public String[] getCode() {
-        return code;
-    }
-
-    public void setCode(String[] code) {
-        this.code = code;
-    }
-
-    public Map<String, Map<String, String>> getTranslaters() {
-        return translaters;
-    }
-
-    public void setTranslaters(Map<String, Map<String, String>> translaters) {
-        this.translaters = translaters;
+    public void setCellInfoVOs(List<CellInfoVO> cellInfoVOs) {
+        this.cellInfoVOs = cellInfoVOs;
     }
 
     public List<Map<String, Object>> getData() {

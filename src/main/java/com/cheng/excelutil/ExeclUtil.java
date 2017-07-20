@@ -18,20 +18,22 @@ import java.util.*;
  * 表格工具类
  *
  * @author chengys4
- * 2017-07-17 12:52
+ *         2017-07-17 12:52
  **/
 public class ExeclUtil {
 
-    public static final String FILETYPE_XLSX= "xlsx" ;
-    public static final String FILETYPE_XLS= "xls" ;
-    public static final int MAX_PAGE_DATA= 150000 ;
+    public static final String FILETYPE_XLSX = "xlsx";
+    public static final String FILETYPE_XLS = "xls";
+    public static final int MAX_PAGE_DATA = 150000;
 
-    private ExeclUtil (){
+    private ExeclUtil() {
 
     }
+
     /**
      * 读取 xls/xlsx 文件
-     * @param filePath  xls/xlsx 路径
+     *
+     * @param filePath xls/xlsx 路径
      * @return 读取的数据
      */
     public static List<Map<String, String>> read(String filePath) throws IOException {
@@ -41,7 +43,8 @@ public class ExeclUtil {
 
     /**
      * 读取 xls/xlsx 文件
-     * @param inputStream  xls/xlsx 文件流
+     *
+     * @param inputStream xls/xlsx 文件流
      * @return 读取的数据
      */
     private static List<Map<String, String>> read(InputStream inputStream, String fileType) {
@@ -78,16 +81,21 @@ public class ExeclUtil {
             if (inputStream != null) {
                 try {
                     inputStream.close();
-                } catch (IOException e) { }
+                } catch (IOException e) {
+                }
             }
-            if(wb!=null){
-                try { wb.close(); } catch (IOException e) { }
+            if (wb != null) {
+                try {
+                    wb.close();
+                } catch (IOException e) {
+                }
             }
         }
     }
 
     /**
      * 得到数据表的头
+     *
      * @param sheet
      * @return
      */
@@ -122,21 +130,47 @@ public class ExeclUtil {
 
     /**
      * 写入一个表格
+     *
+     * @param sheetVO
+     * @return 表格
+     */
+    public static Workbook writeExecl(Workbook workbook, SheetVO sheetVO) {
+        return writeSheet(workbook, sheetVO);
+    }
+
+
+    /**
+     * 写入一个表格
+     *
      * @param workbook
-     * @param sheetName
-     * @param cellInfoVOs
-     * @param data
+     * @param sheetVOs
      * @return
      */
-    public static Workbook write(Workbook workbook,String sheetName,List<CellInfoVO> cellInfoVOs, List<Map<String, Object>> data) {
-        Map<String, Map<String, String>> translaters = new HashMap<>();
-        int defWidth = 4000;
-        int count = data.size();
-        if (count > MAX_PAGE_DATA) {
-            throw new OutAllowRowNumException(" MAX_PAGE_DATA is " + MAX_PAGE_DATA);
+    public static Workbook writeExecl(Workbook workbook, List<SheetVO> sheetVOs) {
+        for (SheetVO sheetVO : sheetVOs) {
+            writeSheet(workbook, sheetVO);
         }
-        int[] excelCellWidths = new int[cellInfoVOs.size()];
-        Arrays.fill(excelCellWidths, defWidth);
+        return workbook;
+    }
+
+
+    /**
+     * 写入一个页签
+     *
+     * @param workbook
+     * @param sheetVO
+     * @return
+     */
+    private static Workbook writeSheet(Workbook workbook, SheetVO sheetVO) {
+        if (sheetVO.getData().size() > MAX_PAGE_DATA) {
+            throw new OutAllowRowNumException(" max size is " + MAX_PAGE_DATA);
+        }
+        return writeSheet(workbook, sheetVO.getSheetName(), sheetVO.getCellInfoVOs(), sheetVO.getData());
+    }
+
+    private static Workbook writeSheet(Workbook workbook, String sheetName, List<CellInfoVO> cellInfoVOs, List<Map<String, Object>> data) {
+
+        Map<String, Map<String, String>> translaters = new HashMap<>();
         String[] excelTitles = new String[cellInfoVOs.size()];
         String[] excelCode = new String[cellInfoVOs.size()];
         for (int i = 0; i < cellInfoVOs.size(); i++) {
@@ -144,49 +178,27 @@ public class ExeclUtil {
             excelCode[i] = cellInfoVOs.get(i).getCode();
             translaters.put(cellInfoVOs.get(i).getCode(), cellInfoVOs.get(i).getTranslater());
         }
-        //数据分组
-        SheetVO basesheetVO = new SheetVO(sheetName);
-        basesheetVO.setData(data);
-        basesheetVO.setCode(excelCode);
-        basesheetVO.setTitle(excelTitles);
-        basesheetVO.setTranslaters(translaters);
-        return write(workbook, Arrays.asList(basesheetVO));
-    }
-    /**
-     * 写入一个表格
-     * @param sheetVO
-     * @return 表格
-     */
-    public static Workbook write(Workbook workbook,SheetVO sheetVO) {
-        return write(workbook, Arrays.asList(sheetVO));
-    }
-
-
-    /**
-     * 写入一个表格
-     * @param workbook
-     * @param sheetVOs
-     * @return
-     */
-    private static Workbook write(Workbook workbook,List<SheetVO> sheetVOs) {
-        for (SheetVO sheetVO:sheetVOs){
-            createSheet(workbook,sheetVO);
-        }
-        return workbook ;
+        return writeSheet(workbook, sheetName, excelCode, excelTitles, translaters, data);
     }
 
     /**
      * 写入一个页签
+     *
      * @param workbook
-     * @param sheetVO
+     * @param sheetName
+     * @param code
+     * @param title
+     * @param translaters
+     * @param data
      * @return
      */
-    private static Sheet createSheet(Workbook workbook, SheetVO sheetVO) {
+    private static Workbook writeSheet(Workbook workbook, String sheetName, String[] code, String[] title, Map<String, Map<String, String>> translaters, List<Map<String, Object>> data) {
+
         //创建页签
-        Sheet sheet = workbook.createSheet(sheetVO.getSheetName());
+        Sheet sheet = workbook.createSheet(sheetName);
         //定义表格宽度
         int defWidth = 4000;
-        int[] excelCellWidths = new int[sheetVO.getCode().length];
+        int[] excelCellWidths = new int[code.length];
         Arrays.fill(excelCellWidths, defWidth);
 
         //表格样式
@@ -194,19 +206,20 @@ public class ExeclUtil {
 
         //写表头
         // 创建标题
-        writeTitleRow(sheet, sheetVO.getTitle(), excelCellWidths);
+        writeTitleRow(sheet, title, excelCellWidths);
 
         //写数据
-        Map<String, Map<String, String>> translaters = sheetVO.getTranslaters();
-        for (int rowIndex = 1; rowIndex <= sheetVO.getData().size(); rowIndex++) {
+        int datasize = data.size();
+        for (int rowIndex = 1; rowIndex <= datasize; rowIndex++) {
             //准备写入的数据
-            Map<String, Object> item = sheetVO.getData().get(rowIndex - 1);
+            Map<String, Object> item = data.get(rowIndex - 1);
             //翻译数据
             item = translateData(translaters, item);
             //写数据
-            writeDataRow(sheet, cellStyle, item, rowIndex, sheetVO.getCode());
+            writeDataRow(sheet, cellStyle, item, rowIndex, code);
         }
-        return sheet;
+        return workbook;
+
     }
 
     /**
@@ -216,8 +229,11 @@ public class ExeclUtil {
         Row row = sheet.createRow(rowIndex);
         writeRowData(cellStyle, row, item, code);
     }
+
+
     /**
      * 创建表头
+     *
      * @param sheet
      * @param titles
      * @param cellWidths
@@ -232,8 +248,10 @@ public class ExeclUtil {
             sheet.setColumnWidth(i, cellWidths[i]);
         }
     }
+
     /**
      * 翻译数据
+     *
      * @param translaters
      * @param item
      * @return
@@ -246,7 +264,7 @@ public class ExeclUtil {
             String key = (String) entry.getKey();
             Map<String, String> stringStringMap = translaters.get(key.toLowerCase());
             if (stringStringMap != null) {
-                String translatervalue = stringStringMap.get(entry.getValue()==null?"":entry.getValue().toString());
+                String translatervalue = stringStringMap.get(entry.getValue() == null ? "" : entry.getValue().toString());
                 item.put(key, translatervalue);
             }
         }
@@ -255,6 +273,7 @@ public class ExeclUtil {
 
     /**
      * 写入一行数据
+     *
      * @param cellStyle
      * @param aRow
      * @param data
@@ -277,7 +296,7 @@ public class ExeclUtil {
                 cell.setCellValue(parseDate((Timestamp) value));
             } else if (value instanceof BigDecimal) {
                 cell.setCellType(Cell.CELL_TYPE_NUMERIC);
-                cell.setCellValue( ((BigDecimal) value).doubleValue());
+                cell.setCellValue(((BigDecimal) value).doubleValue());
             } else if (value instanceof Long) {
                 cell.setCellType(Cell.CELL_TYPE_NUMERIC);
                 cell.setCellValue((Long) value);
@@ -286,6 +305,7 @@ public class ExeclUtil {
             }
         }
     }
+
     private static String parseDate(Timestamp timestamp) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         return format.format(timestamp);
@@ -299,8 +319,10 @@ public class ExeclUtil {
             return null;
         }
     }
+
     /**
      * 创建表格样式
+     *
      * @param wb
      * @return
      */
@@ -321,6 +343,7 @@ public class ExeclUtil {
 
     /**
      * 创建单元格
+     *
      * @param cellStyle
      * @param row
      * @param ci
