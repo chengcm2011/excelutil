@@ -36,9 +36,9 @@ public class ExeclUtil {
      * @param filePath xls/xlsx 路径
      * @return 读取的数据
      */
-    public static List<Map<String, String>> read(String filePath) throws IOException {
+    public static List<Map<String, String>> readExecl(String filePath) throws IOException {
         InputStream stream = new FileInputStream(filePath);
-        return read(stream, getFileType(filePath));
+        return readExecl(stream, getFileType(filePath));
     }
 
     /**
@@ -47,7 +47,7 @@ public class ExeclUtil {
      * @param inputStream xls/xlsx 文件流
      * @return 读取的数据
      */
-    private static List<Map<String, String>> read(InputStream inputStream, String fileType) {
+    private static List<Map<String, String>> readExecl(InputStream inputStream, String fileType) {
         List<Map<String, String>> data = new ArrayList<>();
         Workbook wb = null;
         try {
@@ -76,18 +76,18 @@ public class ExeclUtil {
             data.remove(0);
             return data;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new FileTypeNotSupportExecption("无法写入文件流");
         } finally {
             if (inputStream != null) {
                 try {
                     inputStream.close();
-                } catch (IOException e) {
-                }
+                } catch (IOException e) { }
             }
             if (wb != null) {
                 try {
                     wb.close();
                 } catch (IOException e) {
+
                 }
             }
         }
@@ -99,7 +99,7 @@ public class ExeclUtil {
      * @param sheet
      * @return
      */
-    public static String[] getColsName(Sheet sheet) {
+    private static String[] getColsName(Sheet sheet) {
         Row firstrow = sheet.getRow(sheet.getFirstRowNum());
         String[] colname = new String[firstrow.getLastCellNum()];
         for (int i = 0; i < colname.length; i++) {
@@ -238,7 +238,7 @@ public class ExeclUtil {
      * @param titles
      * @param cellWidths
      */
-    public static void writeTitleRow(Sheet sheet, String[] titles, int[] cellWidths) {
+    private static void writeTitleRow(Sheet sheet, String[] titles, int[] cellWidths) {
         // 创建行
         Row row = sheet.createRow(0);
         for (int i = 0; i < titles.length; i++) {
@@ -323,15 +323,15 @@ public class ExeclUtil {
     /**
      * 创建表格样式
      *
-     * @param wb
-     * @return
+     * @param workbook 表格对象
+     * @return 返回数据表格样式
      */
-    public static CellStyle createDataStyle(Workbook wb) {
-        CellStyle numberCellStyle = wb.createCellStyle();// 创建单元格样式
+    private static CellStyle createDataStyle(Workbook workbook) {
+        CellStyle numberCellStyle = workbook.createCellStyle();// 创建单元格样式
         numberCellStyle.setAlignment(HSSFCellStyle.ALIGN_LEFT);// 指定单元格居中对齐
         numberCellStyle.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);// 指定单元格垂直居中对齐
         numberCellStyle.setWrapText(true);// 指定当单元格内容显示不下时自动换行
-        Font fontContent = wb.createFont();
+        Font fontContent = workbook.createFont();
         fontContent.setFontName("宋体");
         numberCellStyle.setFont(fontContent);
         numberCellStyle.setBorderBottom(HSSFCellStyle.BORDER_THIN);
@@ -344,13 +344,13 @@ public class ExeclUtil {
     /**
      * 创建单元格
      *
-     * @param cellStyle
-     * @param row
-     * @param ci
-     * @return
+     * @param cellStyle 表格样式
+     * @param row 行
+     * @param column 列
+     * @return 单元格
      */
-    public static Cell createCell(CellStyle cellStyle, Row row, int ci) {
-        Cell cell = row.createCell(ci);
+    private static Cell createCell(CellStyle cellStyle, Row row, int column) {
+        Cell cell = row.createCell(column);
         cell.setCellType(HSSFCell.CELL_TYPE_STRING);
         cell.setCellStyle(cellStyle);
         return cell;
